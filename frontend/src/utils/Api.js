@@ -92,9 +92,9 @@ class Api {
 }
 
 const api = new Api({
-  baseUrl: 'https://mesto.nomoreparties.co/v1/cohort-48',
+  baseUrl: 'https://api.bashechka.nomoredomains.work',
   headers: {
-    authorization: '0de73a47-ba0e-4616-b8f4-47dc11cfec5b',
+    authorization: '',
     'Content-Type': 'application/json'
   }
 });
