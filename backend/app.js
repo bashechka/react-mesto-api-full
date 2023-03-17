@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
 const constants = require('http2');
+const cors = require('cors');
 const { errors } = require('celebrate');
 const rateLimit = require('express-rate-limit');
 const auth = require('./middlewares/auth');
@@ -30,6 +31,9 @@ const limiter = rateLimit({
 
 app.use(limiter);
 app.use(helmet());
+
+app.use(cors());
+app.options('*', cors());
 
 app.use(requestLogger); // подключаем логгер запросов
 
