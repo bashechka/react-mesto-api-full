@@ -10,7 +10,7 @@ function Header(props) {
       <Switch>
         <Route exact path="/">
           <div className="header__nav">
-            <p className="header__login">{props.authUser.email}</p>
+            <p className="header__login">{props.email}</p>
             <button onClick={props.signOut} className="header__button-exit">Выйти</button>
           </div>
         </Route>

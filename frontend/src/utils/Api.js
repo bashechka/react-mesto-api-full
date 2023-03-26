@@ -80,6 +80,10 @@ class Api {
     return this._checkResponse(promise);
   }
 
+  setToken(token) {
+    this._options.headers.Authorization = `Bearer ${token}`;
+  }
+
   _checkResponse(promise) {
     return promise.then((res) => {
       if (res.ok) {
@@ -94,8 +98,8 @@ class Api {
 const api = new Api({
   baseUrl: 'https://api.bashechka.nomoredomains.work',
   headers: {
-    authorization: '',
-    'Content-Type': 'application/json'
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
   }
 });
 

@@ -15,7 +15,6 @@ import Register from './Register.js';
 import * as auth from '../utils/auth.js';
 import { Redirect, Route, Switch, useHistory } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute.js'
-import { BrowserRouter } from 'react-router-dom';
 
 
 function App() {
@@ -28,22 +27,9 @@ function App() {
   const [currentUser, setCurrentUser] = React.useState(defaultCurrentUser);
   const [loggedIn, setLoggedIn] = React.useState(false);
   const [isRegisterOk, setRegisterOk] = React.useState(false);
-  const [authUser, setAuthUser] = React.useState({});
   const [cards, setCards] = React.useState([]);
 
   const history = useHistory();
-
-  React.useEffect(() => {
-    api.getUserInfo()
-      .then((data) => {
-        setCurrentUser(data)
-
-      })
-      .catch((err) => {
-        setIsTooltipPopupOpen(true);
-        console.log(err);
-      })
-  }, []);
 
   React.useEffect(() => {
     checkAuthUser();
@@ -51,33 +37,26 @@ function App() {
 
   function checkAuthUser() {
     const token = localStorage.getItem('token');
+    api.setToken(token);
     if (token) {
-      auth.checkToken(token)
-        .then((data) => {
-          if (data && data.data) {
+      Promise.all([api.getUserInfo(), api.getCards()])
+        .then(([user, cards]) => {
+          if (user && user.data) {
             setLoggedIn(true);
-            setAuthUser(data.data);
-            history.push("/");
+            setCurrentUser(user.data);
+            setCards(cards.data);
+            history.push('/');
+          } else {
+            setLoggedIn(false);
+            history.push('/sign-in');
           }
         })
         .catch((err) => {
-          setIsTooltipPopupOpen(true);
           console.log(err);
+          setIsTooltipPopupOpen(false);
         })
     }
   }
-
-  React.useEffect(() => {
-    api.getCards()
-      .then((data) => {
-        setCards(data);
-      })
-      .catch((err) => {
-        setIsTooltipPopupOpen(true);
-        console.log(err);
-      })
-  }, [])
-
 
   function handleEditAvatarClick() {
     setIsEditAvatarPopupOpen(true);
@@ -108,7 +87,7 @@ function App() {
   function handleUpdateUser(userData) {
     api.updateUserInfo(userData)
       .then((userDataServer) => {
-        setCurrentUser(userDataServer)
+        setCurrentUser(userDataServer.data)
         closeAllPopups()
       })
       .catch((err) => {
@@ -120,7 +99,7 @@ function App() {
   function handleUpdateAvatar(userAvatar) {
     api.updateUserAvatar(userAvatar)
       .then((userAvatarServer) => {
-        setCurrentUser(userAvatarServer)
+        setCurrentUser(userAvatarServer.data)
         closeAllPopups()
       })
       .catch((err) => {
@@ -131,11 +110,11 @@ function App() {
 
   function handleCardLike(card) {
     // Снова проверяем, есть ли уже лайк на этой карточке
-    const isLiked = card.likes.some(i => i._id === currentUser._id);
+    const isLiked = card.likes.some(i => i === currentUser._id);
 
     // Отправляем запрос в API и получаем обновлённые данные карточки
     api.changeLikeStatus(card._id, !isLiked).then((newCard) => {
-      setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
+      setCards((state) => state.map((c) => c._id === card._id ? newCard.data : c));
     })
       .catch((err) => {
         setIsTooltipPopupOpen(true);
@@ -157,7 +136,7 @@ function App() {
   function handleAddPlaceSubmit(card) {
     api.createNewCard(card)
       .then((newCard) => {
-        setCards([newCard, ...cards]);
+        setCards([newCard.data, ...cards]);
         closeAllPopups();
       })
       .catch((err) => {
@@ -175,7 +154,7 @@ function App() {
   function handleRegister(email, password) {
     auth.register(password, email)
       .then((data) => {
-        if (data && data.data) {
+        if (data) {
           setRegisterOk(true);
           history.push("/sign-in");
         } else {
@@ -248,7 +227,7 @@ function App() {
           buttonName="Да"
         />
 
-        <Header signOut={handleSignOut} authUser={authUser} />
+        <Header signOut={handleSignOut} email={currentUser.email} />
 
         <Switch>
           <ProtectedRoute
