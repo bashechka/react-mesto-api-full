@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const constants = require('http2');
 const cors = require('cors');
 const { errors } = require('celebrate');
+
 const rateLimit = require('express-rate-limit');
 const auth = require('./middlewares/auth');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
@@ -16,6 +17,10 @@ const { login, createUser } = require('./controllers/users');
 const { userValidator, signInValidator } = require('./validators/validators');
 
 const { PORT = 3000 } = process.env;
+const { NODE_ENV, JWT_SECRET } = process.env;
+
+const secret = NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret';
+app.set('secret', secret);
 
 mongoose.set({ runValidators: true });
 mongoose.connect('mongodb://localhost:27017/mestodb');
@@ -36,6 +41,12 @@ app.use(cors());
 app.options('*', cors());
 
 app.use(requestLogger); // подключаем логгер запросов
+
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
 
 app.post('/signin', signInValidator, login);
 app.post('/signup', userValidator, createUser);
