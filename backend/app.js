@@ -1,4 +1,4 @@
-const dotenv = require('dotenv');
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
@@ -20,7 +20,6 @@ const { userValidator, signInValidator } = require('./validators/validators');
 const { PORT = 3000 } = process.env;
 const { NODE_ENV, JWT_SECRET } = process.env;
 
-dotenv.config();
 const secret = NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret';
 app.set('secret', secret);
 
